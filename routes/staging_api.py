@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException
 
-from celery_jobs.celery_tasks import process_usl_data
+# from celery_jobs.celery_tasks import process_usl_data
 from celery.result import AsyncResult
 from sqlalchemy import text
 
@@ -103,10 +103,16 @@ async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_d
 
         # update manifest
         # Manifests.objects(id=_id).update(end=datetime.utcnow(), receivedCount=10)
+        from celery_jobs.celery_tasks import process_usl_data
 
         task = process_usl_data.apply_async(args=[baselookup, data])
-        # data["data"]
         return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
+        # data["data"]
+        # if success==200:
+        #     return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
+        # else:
+        #     return {"status": 500, "task_id": task.id, "message": f"Failed"}
+
         # return {"status":200, "message":f"Successfully inserted {len(inserts_result.inserted_ids)} records"}
     except Exception as e:
         return {"status": 500, "message": e}

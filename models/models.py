@@ -15,6 +15,9 @@ from datetime import datetime
 
 Base = declarative_base()
 
+
+
+
 class DataDictionaries(Base):
     __tablename__ = "DataDictionaries"
     id = Column(UNIQUEIDENTIFIER, primary_key=True, default=uuid.uuid1)
@@ -98,3 +101,9 @@ class Manifests(Base):
 
     class Settings:
         collection = "manifests"
+
+
+
+# Dynamically create models
+from database.create_dictionary_models import *
+dynamic_models = create_models_from_metadata()

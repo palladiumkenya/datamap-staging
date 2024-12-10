@@ -15,7 +15,6 @@ from database import *
 from models.models import *
 from database.database import get_database, SessionLocal, engine
 from sqlalchemy.orm import Session
-from database.create_dictionary_models import *
 
 
 app = FastAPI()
@@ -50,9 +49,9 @@ def get_db():
         db.close()
 
 
-
-# Dynamically create models
-models = create_models_from_metadata()
+#
+# # Dynamically create models
+# models = create_models_from_metadata()
 
 
 

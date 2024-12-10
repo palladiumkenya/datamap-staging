@@ -27,7 +27,9 @@ DATA_TYPE_MAP = {
     "boolean": Boolean,
 }
 
-# db: Session = Depends(get_db)
+
+# Dictionary to hold created models
+models = {}
 def create_models_from_metadata():
     # Query metadata tables
     session = Session(engine)
@@ -35,7 +37,7 @@ def create_models_from_metadata():
     columns = session.query(DataDictionaryTerms).all()
     session.close()
 
-    models = {}
+    global models  # Allow modification of the global models dictionary
 
     for table in tables:
         table_name = table.name
@@ -58,5 +60,4 @@ def create_models_from_metadata():
         # Dynamically create a model class
         model = type(table_name, (Base,), fields)
         models[table_name] = model
-
     return models
