@@ -18,11 +18,28 @@ Base = declarative_base()
 
 
 
+class UniversalDictionaryConfig(Base):
+    __tablename__ = 'UniversalDictionaryConfig'
+
+    id =  Column(UUID(as_uuid=True),primary_key=True, default=uuid.uuid1)
+    universal_dictionary_url = Column(String,nullable=False)
+    universal_dictionary_jwt = Column(String, nullable=False)
+    universal_dictionary_update_frequency = Column(String, nullable=True)
+    created_at = Column(DateTime,nullable=False, default=datetime.utcnow())
+    updated_at = Column(DateTime,nullable=False, default=datetime.utcnow())
+    deleted_at = Column(DateTime,nullable=True)
+
+    def save(self):
+        self.updated_at = datetime.utcnow()
+        super().save()
+
+
 class DataDictionaries(Base):
     __tablename__ = "DataDictionaries"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1)
     name = Column(String,nullable=False)
     is_published = Column(Boolean, default=False)
+    version_number = Column(Integer,nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
     deleted_at = Column(DateTime, nullable=False)

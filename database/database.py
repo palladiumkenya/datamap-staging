@@ -22,8 +22,8 @@ log.addHandler(handler)
 #     f"{settings.SQL_HOST}:{settings.SQL_PORT}/{settings.SQL_DB}"
 # )
 DATABASE_URL = (
-    f"postgresql+psycopg2://{settings.SQL_USER}:{settings.SQL_PASSWORD}@"
-    f"{settings.SQL_HOST}:{settings.SQL_PORT}/{settings.SQL_DB}"
+    f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASSWORD}@"
+    f"{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_DB}"
 )
 
 # Create the SQLAlchemy engine
