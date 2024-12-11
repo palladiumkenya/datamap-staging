@@ -106,12 +106,16 @@ async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_d
         from celery_jobs.celery_tasks import process_usl_data
 
         task = process_usl_data.apply_async(args=[baselookup, data])
-        return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
-        # data["data"]
-        # if success==200:
-        #     return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
-        # else:
-        #     return {"status": 500, "task_id": task.id, "message": f"Failed"}
+
+        task_id = task.id
+        result = AsyncResult(task_id)
+
+        # Check if the task is successful or failed
+        if result.successful():
+            return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
+        elif result.failed():
+            return {"status": 500, "task_id": task.id, "message": f"Failed"}
+        # return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
 
         # return {"status":200, "message":f"Successfully inserted {len(inserts_result.inserted_ids)} records"}
     except Exception as e:
