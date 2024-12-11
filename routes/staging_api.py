@@ -80,13 +80,14 @@ async def verify_manifest(manifest: Manifest, db: Session = Depends(get_db)):
         )
         db.add(new_manifest)
         db.commit()
-        # new_manifest.save()
 
-        sql = f"DELETE FROM {manifest.usl_repository_name} WHERE FacilityID = '{manifest.facility}'"
-        db.execute(text(sql))
-        db.commit()
-        # collection = db[manifest.usl_repository_name]
-        # delete_result = collection.delete_many({"FacilityID": manifest.facility})
+        # clear extracts under this facility
+        from models.models import dynamic_models
+        USLDictionaryModel = dynamic_models.get(manifest.usl_repository_name)
+
+        db.query(USLDictionaryModel).filter(getattr(USLDictionaryModel, "FacilityID", None) == manifest.facility).delete(synchronize_session=False)
+        db.commit()  # Commit the changes
+
         log.info(f'++++++++ Cleared :{manifest.facility} records from repository {manifest.usl_repository_name} +++++++++')
 
         return {"status": "Repository successfully verified"}

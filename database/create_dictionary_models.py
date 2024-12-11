@@ -1,7 +1,8 @@
-
+from sqlalchemy import inspect
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+
 from routes import  staging_api, data_dictionary_api, staging_history_api
 from sqlalchemy import (
     Column,
@@ -15,7 +16,8 @@ from database import *
 from models.models import *
 from database.database import get_database, SessionLocal, engine
 from sqlalchemy.orm import Session
-from database.create_dictionary_models import *
+from database.create_dictionary_models import DataDictionaries, DataDictionaryTerms
+from sqlalchemy.dialects.postgresql import UUID
 
 
 
@@ -31,33 +33,38 @@ DATA_TYPE_MAP = {
 # Dictionary to hold created models
 models = {}
 def create_models_from_metadata():
-    # Query metadata tables
-    session = Session(engine)
-    tables = session.query(DataDictionaries).all()
-    columns = session.query(DataDictionaryTerms).all()
-    session.close()
+    try:
+        # Query metadata tables
+        session = Session(engine)
+        if inspect(engine).has_table("DataDictionaries"):
+            tables = session.query(DataDictionaries).all()
+            columns = session.query(DataDictionaryTerms).all()
+            session.close()
 
-    global models  # Allow modification of the global models dictionary
+            global models  # Allow modification of the global models dictionary
 
-    for table in tables:
-        table_name = table.name
+            for table in tables:
+                table_name = table.name
 
-        # Get columns for this table
-        table_columns = [
-            col for col in columns if col.dictionary == table_name
-        ]
+                # Get columns for this table
+                table_columns = [
+                    col for col in columns if col.dictionary == table_name
+                ]
 
-        # Define table fields
-        fields = {
-            "__tablename__": table_name,
-            "id": Column(UNIQUEIDENTIFIER, primary_key=True, default=uuid.uuid1),  # Add default id column
-        }
+                # Define table fields
+                fields = {
+                    "__tablename__": table_name,
+                    "id": Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1),  # Add default id column
+                }
 
-        for col in table_columns:
-            col_type = DATA_TYPE_MAP.get(col.data_type.lower(), String)  # Default to String
-            fields[col.term] = Column(col_type)
+                for col in table_columns:
+                    col_type = DATA_TYPE_MAP.get(col.data_type.lower(), String)  # Default to String
+                    fields[col.term] = Column(col_type)
 
-        # Dynamically create a model class
-        model = type(table_name, (Base,), fields)
-        models[table_name] = model
-    return models
+                # Dynamically create a model class
+                model = type(table_name, (Base,), fields)
+                models[table_name] = model
+        return models
+    except Exception as e:
+        print("error creating dynamic tables -->", e)
+        return models

@@ -16,8 +16,7 @@ CELERY_RESULT_BACKEND = "rpc://"
 celery = Celery("opendive_tasks", broker=CELERY_BROKER_URL, backend=CELERY_RESULT_BACKEND)
 
 
-def get_db():
-    return database.get_database()
+
 
 
 
@@ -39,10 +38,6 @@ def process_usl_data(baselookup:str,  usl_data: Dict[str, Any]):
 
         if not USLDictionaryModel:
             raise ValueError(f"Model for table '{baselookup}' not found.")
-
-        # clear extracts under this facility
-        db.query(USLDictionaryModel).filter(USLDictionaryModel.FacilityID == usl_data["facility_id"]).delete(synchronize_session=False)
-        db.commit()  # Commit the changes
 
         # Create multiple records then Add and commit the records to the database
         dataToBeInserted = usl_data["data"]

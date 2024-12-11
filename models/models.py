@@ -7,7 +7,7 @@ from sqlalchemy import (
     DateTime,
     create_engine,
 )
-from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -20,7 +20,7 @@ Base = declarative_base()
 
 class DataDictionaries(Base):
     __tablename__ = "DataDictionaries"
-    id = Column(UNIQUEIDENTIFIER, primary_key=True, default=uuid.uuid1)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1)
     name = Column(String,nullable=False)
     is_published = Column(Boolean, default=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
@@ -37,9 +37,9 @@ class DataDictionaries(Base):
 
 class DataDictionaryTerms(Base):
     __tablename__ = "DataDictionaryTerms"
-    id = Column(UNIQUEIDENTIFIER, primary_key=True, default=uuid.uuid1)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1)
     dictionary = Column(String, nullable=False)
-    dictionary_id = Column(UNIQUEIDENTIFIER, nullable=False)
+    dictionary_id = Column(UUID(as_uuid=True), nullable=False)
     term = Column(String, nullable=False)
     data_type = Column(String, nullable=False)
     is_required = Column(Boolean, default=False)
@@ -64,8 +64,8 @@ class DataDictionaryTerms(Base):
 
 class Facilities(Base):
     __tablename__ = "Facilities"
-    id = Column(UNIQUEIDENTIFIER, primary_key=True, default=uuid.uuid1)
-    facility_name = Column(UNIQUEIDENTIFIER, default=uuid.uuid1)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1)
+    facility_name = Column(UUID(as_uuid=True), default=uuid.uuid1)
     site_code = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
@@ -80,9 +80,9 @@ class Facilities(Base):
 
 class Manifests(Base):
     __tablename__ = "Manifests"
-    id = Column(UNIQUEIDENTIFIER, primary_key=True, default=uuid.uuid1)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1)
     facility = Column(String, nullable=False)
-    manifest_id = Column(UNIQUEIDENTIFIER, default=uuid.uuid1)
+    manifest_id = Column(UUID(as_uuid=True), default=uuid.uuid1)
     usl_repository_name = Column(String, nullable=False)
     expected_count = Column(Integer)
     received_count = Column(Integer, nullable=True)
@@ -90,7 +90,7 @@ class Manifests(Base):
     source_system_version = Column(String, nullable=False)
     opendive_version = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
-    session_id = Column(UNIQUEIDENTIFIER, default=uuid.uuid1)
+    session_id = Column(UUID(as_uuid=True), default=uuid.uuid1)
     start = Column(DateTime, nullable=False, default=datetime.utcnow())
     end = Column(DateTime, nullable=True)
     status = Column(String)

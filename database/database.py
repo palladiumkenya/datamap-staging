@@ -17,8 +17,12 @@ log.addHandler(handler)
 
 
 
+# DATABASE_URL = (
+#     f"mssql+pymssql://{settings.SQL_USER}:{settings.SQL_PASSWORD}@"
+#     f"{settings.SQL_HOST}:{settings.SQL_PORT}/{settings.SQL_DB}"
+# )
 DATABASE_URL = (
-    f"mssql+pymssql://{settings.SQL_USER}:{settings.SQL_PASSWORD}@"
+    f"postgresql+psycopg2://{settings.SQL_USER}:{settings.SQL_PASSWORD}@"
     f"{settings.SQL_HOST}:{settings.SQL_PORT}/{settings.SQL_DB}"
 )
 
