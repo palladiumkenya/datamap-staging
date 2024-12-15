@@ -44,7 +44,7 @@ def create_models_from_metadata():
             global models  # Allow modification of the global models dictionary
 
             for table in tables:
-                table_name = table.name
+                table_name = table.name.lower()
 
                 # Get columns for this table
                 table_columns = [
@@ -58,8 +58,8 @@ def create_models_from_metadata():
                 }
 
                 for col in table_columns:
-                    col_type = DATA_TYPE_MAP.get(col.data_type.lower(), String)  # Default to String
-                    fields[col.term] = Column(col_type)
+                    col_type = DATA_TYPE_MAP.get(col.data_type, String)  # Default to String
+                    fields[col.term.lower()] = Column(col_type)
 
                 # Dynamically create a model class
                 model = type(table_name, (Base,), fields)

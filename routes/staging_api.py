@@ -85,7 +85,7 @@ async def verify_manifest(manifest: Manifest, db: Session = Depends(get_db)):
         from models.models import dynamic_models
         USLDictionaryModel = dynamic_models.get(manifest.usl_repository_name)
 
-        db.query(USLDictionaryModel).filter(getattr(USLDictionaryModel, "FacilityID", None) == manifest.facility).delete(synchronize_session=False)
+        db.query(USLDictionaryModel).filter(getattr(USLDictionaryModel, "facilityid", None) == manifest.facility).delete(synchronize_session=False)
         db.commit()  # Commit the changes
 
         log.info(f'++++++++ Cleared :{manifest.facility} records from repository {manifest.usl_repository_name} +++++++++')
@@ -101,12 +101,17 @@ async def verify_manifest(manifest: Manifest, db: Session = Depends(get_db)):
 @router.post('/usl/{baselookup}')
 async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_db)):
     try:
+        print("+++ Started Staging print +++",baselookup)
+        log.info("+++ Started Staging info+++")
+        print("+++ Started Staging data +++", data)
 
         # update manifest
         # Manifests.objects(id=_id).update(end=datetime.utcnow(), receivedCount=10)
         from celery_jobs.celery_tasks import process_usl_data
+        print("+++ fails after ? +++")
 
         task = process_usl_data.apply_async(args=[baselookup, data])
+        print("+++ process_usl_data +++", task)
 
         task_id = task.id
         result = AsyncResult(task_id)
@@ -116,7 +121,9 @@ async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_d
             return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
         elif result.failed():
             return {"status": 500, "task_id": task.id, "message": f"Failed"}
-        # return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
+
+        print("+++ Staging results +++")
+        log.info({"task_id": task.id, "result": result})
 
         # return {"status":200, "message":f"Successfully inserted {len(inserts_result.inserted_ids)} records"}
     except Exception as e:

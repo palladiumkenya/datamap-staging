@@ -14,8 +14,6 @@ from typing import List
 import logging
 
 from settings import settings
-from cassandra.cluster import Cluster
-from cassandra.auth import PlainTextAuthProvider
 
 from models.models import Manifests, DataDictionaries
 from database import database
@@ -43,7 +41,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def get_db():
     return database.get_database()
 #
-# HOSTS = [settings.CASSANDRA_HOST]
 # CREDENTIAL = {'username': settings.CASSANDRA_USER, 'password': settings.CASSANDRA_PASSWORD}
 # AUTH_PROVIDER = PlainTextAuthProvider(username=settings.CASSANDRA_USER, password=settings.CASSANDRA_PASSWORD)
 

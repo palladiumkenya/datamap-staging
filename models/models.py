@@ -42,7 +42,7 @@ class DataDictionaries(Base):
     version_number = Column(Integer,nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
-    deleted_at = Column(DateTime, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
     def save(self):
         self.updated_at = datetime.utcnow()

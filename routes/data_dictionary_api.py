@@ -39,7 +39,7 @@ def sync_dictionaries(usl_dicts: list) -> dict:
         existing_dict = db.query(DataDictionaries).filter(getattr(DataDictionaries, "FacilityID", None) == dictionary['name']).first()
         if not existing_dict:
             new_dict = DataDictionaries(
-                name=dictionary['name'],
+                name=dictionary['name'].lower(),
                 is_published=dictionary['is_published'],
                 version_number=dictionary['version_number'],
             )
@@ -85,9 +85,9 @@ def sync_terms(terms):
                 getattr(DataDictionaryTerms, "term", None) == usl_term['term']).first()
             if not existing_term:
                 new_term = DataDictionaryTerms(
-                    dictionary=usl_term['dictionary'],
+                    dictionary=usl_term['dictionary'].lower(),
                     dictionary_id=dictionary_id,
-                    term=usl_term['term'],
+                    term=usl_term['term'].lower(),
                     data_type=usl_term['data_type'],
                     is_required=usl_term['is_required'],
                     term_description=usl_term['term_description'],
@@ -112,68 +112,17 @@ def sync_terms(terms):
     return {"message": "Data dictionary terms synced successfully"}
 
 
-# Function to map SQL data types to Cassandra columns
-# def get_cassandra_column(data_type):
-#     """
-#     Maps SQL data types to corresponding Cassandra columns.
-#     :param data_type: SQL data type.
-#     :return: cassandra.cqlengine.columns.Column: Corresponding Cassandra column type.
-#     """
-#     if str(data_type).upper() in ["DATE", "DATETIME", "DATETIME2"]:
-#         return columns.DateTime
-#     elif str(data_type).upper() in ["NVARCHAR", "VARCHAR", "TEXT"]:
-#         return columns.Text
-#     elif str(data_type).upper() in ["INT", "INTEGER", "BIGINT", "NUMERIC"]:
-#         return columns.Integer
-#     elif str(data_type).upper() == "BOOLEAN":
-#         return columns.Boolean
-#     elif str(data_type).upper() == "FLOAT":
-#         return columns.Float
-#     elif str(data_type).upper() == "DOUBLE":
-#         return columns.Double
-#     elif str(data_type).upper() == "UUID":
-#         return columns.UUID
-#     else:
-#         # Default to Text if data type not recognized
-#         return columns.Text
 
-
-# Function to create Cassandra tables based on data dictionary terms
+# Function to create tables based on data dictionary terms
 def create_tables():
     """
-    Creates Cassandra tables based on data dictionary terms.
+    Creates  tables based on data dictionary terms.
     :return: None
     """
     from database.create_dictionary_models import create_models_from_metadata
 
     create_models_from_metadata()
-    # terms = DataDictionaryTerms.objects().all()
-    # table_columns = {}
-    #
-    # # Iterate over terms to create table structures
-    # for term in terms:
-    #     table_name = term.dictionary.lower()
-    #     column_name = term.term.lower()
-    #     column_type = get_cassandra_column(term.data_type)
-    #     column_required = term.is_required
-    #
-    #     if table_name not in table_columns:
-    #         table_columns[table_name] = {}
-    #     # Add column to table_columns dictionary
-    #     table_columns[table_name][column_name] = column_type(required=column_required)
-    #
-    # # Create tables and synchronize with Cassandra
-    # for table_name, tbl_columns in table_columns.items():
-    #     # Add primary key column to each table
-    #     tbl_columns[f'{table_name}_id'] = columns.UUID(primary_key=True, default=uuid.uuid1)
-    #     # Create dynamic table class and synchronize with Cassandra
-    #     dynamic_table = type(table_name, (models.Model,), tbl_columns)
-    #     dynamic_table.__keyspace__ = database.KEYSPACE
-    #     try:
-    #         drop_table(dynamic_table)
-    #     except:
-    #         pass
-    #     sync_table(dynamic_table)
+
 
 
 def pull_dict_from_universal(universal_dict_config):

@@ -1,55 +1,57 @@
 version: '3.8'
 
 services:
-  datamap-staging-app:
-    image: python:3.11
-    container_name: datamap-staging-app
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    command: uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
-    ports:
-      - "9000:8000"
+    container_name: datamap-staging-app
+    command: uvicorn main:app --host 0.0.0.0 --port 9000
     volumes:
       - .:/app
+    ports:
+      - "9001:9000"
     depends_on:
-      - rabbitMQ
+      - rabbitmqservice
     environment:
-      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmqservice:5772//
       - CELERY_RESULT_BACKEND=rpc://
+      - PYTHONPATH=/app  # Make sure Python looks at /app for modules
+
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-flower
+    command: celery -A celery_jobs.celery_tasks flower --port=5555
+    ports:
+      - "5557:5555"
+    depends_on:
+      - rabbitmqservice
+
 
   celery_worker:
-    image: python:3.11
-    container_name: celery_worker
     build:
       context: .
-      dockerfile: Dockerfile
-#    command: celery -A app.worker.celery_app worker --loglevel=info
-    command: celery -A app.celery_tasks worker --loglevel=info --pool=sol
+      dockerfile: Dockerfile  # Use the same image as app service
+    container_name: celery_worker
+    command: celery -A celery_jobs.celery_tasks worker --loglevel=info --pool=solo
+#    command: ["./wait-for-it.sh", "rabbitmqservice:5772", "--", "celery", "-A", "celery_jobs.celery_tasks", "worker", "--loglevel=info", "--pool=solo"]
     volumes:
-      - .:/app
+      - .:/app  # Mount your local code to /app in the container
     depends_on:
-      - rabbitMQ
+      - rabbitmqservice
     environment:
-      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://guest:guest@192.168.100.35:5772//
       - CELERY_RESULT_BACKEND=rpc://
 
-  celery_flower:
-    image: mher/flower
-    container_name: celery_flower
-    ports:
-      - "5555:5555"
-    command: >
-      --broker=amqp://guest:guest@rabbitmq:5672//
-    depends_on:
-      - rabbitMQ
-
-  rabbitMQ:
+  rabbitmqservice:
     image: rabbitmq:3-management
-    container_name: rabbitMQ
+    container_name: rabbitmqservice
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5772:5672"
+      - "15772:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+

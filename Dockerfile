@@ -1,21 +1,19 @@
-
 FROM python:3.11
 
-RUN mkdir /app
-
-# where your code lives  WORKDIR $DockerHOME
+# Set working directory
 WORKDIR /app
 
-ADD . /app/
-# install dependencies
-RUN pip install --upgrade pip
+# Copy application code and requirements
+COPY requirements.txt /app/
+COPY . /app/
 
-# run this command to install all dependencies
-ADD requirements.txt /app
+# Install dependencies
+RUN pip install --upgrade pip
+RUN pip install flower
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app
+# Expose ports
+EXPOSE 9000 5555 9001 5772
 
-EXPOSE 9000
-
+# Command to run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000"]

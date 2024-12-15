@@ -7,10 +7,11 @@ from database.database import SessionLocal
 from fastapi import  Depends
 from models.models import Manifests,dynamic_models
 from sqlalchemy.orm import Session
+from settings import settings
 
 
 
-CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672//"
+CELERY_BROKER_URL = settings.RABBITMQ_URL
 CELERY_RESULT_BACKEND = "rpc://"
 
 celery = Celery("opendive_tasks", broker=CELERY_BROKER_URL, backend=CELERY_RESULT_BACKEND)

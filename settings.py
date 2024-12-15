@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     DB_DB: str
     DB_USER: str
     DB_PASSWORD: str
+    RABBITMQ_URL: str
 
     class Config:
         env_file = './.env'
