@@ -101,14 +101,11 @@ async def verify_manifest(manifest: Manifest, db: Session = Depends(get_db)):
 @router.post('/usl/{baselookup}')
 async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_db)):
     try:
-        print("+++ Started Staging print +++",baselookup)
-        log.info("+++ Started Staging info+++")
-        print("+++ Started Staging data +++", data)
+        log.info("+++ Started Staging +++")
 
         # update manifest
         # Manifests.objects(id=_id).update(end=datetime.utcnow(), receivedCount=10)
         from celery_jobs.celery_tasks import process_usl_data
-        print("+++ fails after ? +++")
 
         task = process_usl_data.apply_async(args=[baselookup, data])
         print("+++ process_usl_data +++", task)
@@ -122,8 +119,8 @@ async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_d
         elif result.failed():
             return {"status": 500, "task_id": task.id, "message": f"Failed"}
 
-        print("+++ Staging results +++")
-        log.info({"task_id": task.id, "result": result})
+        log.info("+++ Staging results +++")
+        log.info({"task_id": task.id, "success": result.successful()})
 
         # return {"status":200, "message":f"Successfully inserted {len(inserts_result.inserted_ids)} records"}
     except Exception as e:

@@ -1,6 +1,8 @@
 from typing import List
 from typing import Dict, Any
 from datetime import datetime
+from fastapi import Depends, HTTPException
+import logging
 
 from celery import Celery
 from database.database import SessionLocal
@@ -8,6 +10,16 @@ from fastapi import  Depends
 from models.models import Manifests,dynamic_models
 from sqlalchemy.orm import Session
 from settings import settings
+
+
+
+
+log = logging.getLogger()
+log.setLevel('DEBUG')
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+log.addHandler(handler)
+
 
 
 
@@ -31,6 +43,8 @@ def process_data(data: str):
 @celery.task(name="celery_jobs.celery_tasks.process_usl_data")  # Explicitly define task name
 def process_usl_data(baselookup:str,  usl_data: Dict[str, Any]):
     """process data"""
+    log.info("+++ process data +++")
+
     try:
         # db = get_db()
         db: Session = SessionLocal()  # Create session from SessionLocal()
@@ -39,6 +53,7 @@ def process_usl_data(baselookup:str,  usl_data: Dict[str, Any]):
 
         if not USLDictionaryModel:
             raise ValueError(f"Model for table '{baselookup}' not found.")
+        log.info("+++ USLDictionaryModel +++", USLDictionaryModel)
 
         # Create multiple records then Add and commit the records to the database
         dataToBeInserted = usl_data["data"]
@@ -48,7 +63,7 @@ def process_usl_data(baselookup:str,  usl_data: Dict[str, Any]):
         db.commit()
 
         # Dynamically access the filter column
-        column_attr = getattr(USLDictionaryModel, "FacilityID", None)
+        column_attr = getattr(USLDictionaryModel, "facilityid", None)
         if not column_attr:
             raise ValueError(f"Column FacilityID not found in model '{baselookup}'.")
 
@@ -61,6 +76,10 @@ def process_usl_data(baselookup:str,  usl_data: Dict[str, Any]):
             db.query(Manifests).filter(Manifests.manifest_id == usl_data["manifest_id"]).update(
                 {"end": datetime.utcnow()})
             db.commit()
-        return f"++++++++ Processed: {baselookup} USL data batch No. {usl_data['batch_no']} +++++++++"
+        log.info(f"++++++++ Processed: {baselookup} USL data batch No. {usl_data['batch_no']} +++++++++")
+
     except Exception as e:
-        return {"status":500, "message":e}
+        log.info(f"++++++++ Worker failed. Error message: {e} +++++++++")
+        raise HTTPException(status_code=500, detail=e)
+
+        # return {"status":500, "message":e}
