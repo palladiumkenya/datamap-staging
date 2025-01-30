@@ -55,6 +55,8 @@ def create_models_from_metadata():
                 fields = {
                     "__tablename__": table_name,
                     "id": Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1),  # Add default id column
+                    table_name+"_id": Column(String,nullable=True),  # Add table_name id column
+
                 }
 
                 for col in table_columns:

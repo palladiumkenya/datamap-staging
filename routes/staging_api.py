@@ -85,6 +85,8 @@ async def verify_manifest(manifest: Manifest, db: Session = Depends(get_db)):
         from models.models import dynamic_models
         USLDictionaryModel = dynamic_models.get(manifest.usl_repository_name)
 
+        if not getattr(USLDictionaryModel, "facilityid", None):
+            log.info(f'------- Column does not exist : facilityid --------')
         db.query(USLDictionaryModel).filter(getattr(USLDictionaryModel, "facilityid", None) == manifest.facility).delete(synchronize_session=False)
         db.commit()  # Commit the changes
 
@@ -113,14 +115,14 @@ async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_d
         task_id = task.id
         result = AsyncResult(task_id)
 
+        log.info("+++ Staging results +++")
+        log.info({"task_id": task.id, "success": result.successful(), "results":  str(result.result) if result.successful() or result.failed() else None})
+
         # Check if the task is successful or failed
         if result.successful():
             return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
         elif result.failed():
             return {"status": 500, "task_id": task.id, "message": f"Failed"}
-
-        log.info("+++ Staging results +++")
-        log.info({"task_id": task.id, "success": result.successful()})
 
         # return {"status":200, "message":f"Successfully inserted {len(inserts_result.inserted_ids)} records"}
     except Exception as e:
