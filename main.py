@@ -64,12 +64,12 @@ async def startup_event():
 
 
 # app.include_router(access_api.router, tags=['Access'], prefix='/api/db_access')
-app.include_router(staging_api.router, tags=['Staging'], prefix='/usl/api/staging')
-app.include_router(data_dictionary_api.router, tags=['Data Dictionary'], prefix='/usl/api/data_dictionary')
-app.include_router(staging_history_api.router, tags=['Staging History'], prefix='/usl/api/history')
+app.include_router(staging_api.router, tags=['Staging'], prefix='/usl_staging/api/staging')
+app.include_router(data_dictionary_api.router, tags=['Data Dictionary'], prefix='/usl_staging/api/data_dictionary')
+app.include_router(staging_history_api.router, tags=['Staging History'], prefix='/usl_staging/api/history')
 
 
-@app.get("/usl/api/staging/healthchecker")
+@app.get("/usl_staging/api/staging/healthchecker")
 def root():
     return {"message": "Welcome to Datamap staging, we are up and running", "version": "1.000"}
 

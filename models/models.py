@@ -98,7 +98,8 @@ class Facilities(Base):
 class Manifests(Base):
     __tablename__ = "Manifests"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1)
-    facility = Column(String, nullable=False)
+    facility_name = Column(String, nullable=False)
+    facility_id = Column(String, nullable=False)
     manifest_id = Column(UUID(as_uuid=True), default=uuid.uuid1)
     usl_repository_name = Column(String, nullable=False)
     expected_count = Column(Integer)

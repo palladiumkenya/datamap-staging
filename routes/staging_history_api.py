@@ -63,7 +63,7 @@ async def stage_usl_data(baselookup:str, db=Depends(get_db)):
 
         manifests = collection.find({"usl_repository_name": baselookup})
 
-        return json.loads(dumps(manifests))
+        return json.loads(manifests)
     except Exception as e:
         return {"status":500, "message":e}
 

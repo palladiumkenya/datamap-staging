@@ -57,7 +57,9 @@ class Manifest(BaseModel):
     source_system_name: str = Field(..., description="Name of the system sending the data")
     source_system_version: str = Field(..., description="Version of the system sending the data")
     opendive_version: str = Field(..., description="Opendive version sending data")
-    facility: str = Field(..., description="Facility name")
+    facility_name: str = Field(..., description="Facility name")
+    facility_id: str = Field(..., description="Facility id")
+
 
 
 @router.post("/verify")
@@ -66,7 +68,8 @@ async def verify_manifest(manifest: Manifest, db: Session = Depends(get_db)):
 
         new_manifest = Manifests(
             manifest_id=manifest.manifest_id,
-            facility=manifest.facility,
+            facility_name=manifest.facility_name,
+            facility_id=manifest.facility_id,
             usl_repository_name=manifest.usl_repository_name,
             expected_count=manifest.count,
             received_count=None,
@@ -87,10 +90,10 @@ async def verify_manifest(manifest: Manifest, db: Session = Depends(get_db)):
 
         if not getattr(USLDictionaryModel, "facilityid", None):
             log.info(f'------- Column does not exist : facilityid --------')
-        db.query(USLDictionaryModel).filter(getattr(USLDictionaryModel, "facilityid", None) == manifest.facility).delete(synchronize_session=False)
+        db.query(USLDictionaryModel).filter(getattr(USLDictionaryModel, "facilityid", None) == manifest.facility_id).delete(synchronize_session=False)
         db.commit()  # Commit the changes
 
-        log.info(f'++++++++ Cleared :{manifest.facility} records from repository {manifest.usl_repository_name} +++++++++')
+        log.info(f'++++++++ Cleared :{manifest.facility_id}({manifest.facility_name}) records from repository {manifest.usl_repository_name} +++++++++')
 
         return {"status": "Repository successfully verified"}
 
