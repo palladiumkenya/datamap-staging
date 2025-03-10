@@ -14,7 +14,7 @@ services:
     depends_on:
       - rabbitmqservice
     environment:
-      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmqservice:5772//
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmqservice:5672//
       - CELERY_RESULT_BACKEND=rpc://
       - PYTHONPATH=/app  # Make sure Python looks at /app for modules
 
@@ -42,7 +42,7 @@ services:
     depends_on:
       - rabbitmqservice
     environment:
-      - CELERY_BROKER_URL=amqp://guest:guest@192.168.100.35:5772//
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmqservice:5672//
       - CELERY_RESULT_BACKEND=rpc://
 
   rabbitmqservice:

@@ -43,6 +43,7 @@ def create_models_from_metadata():
             # session.close()
 
             global models  # Allow modification of the global models dictionary
+            models.clear()
 
             for table in tables:
                 table_name = table.name.lower()
@@ -84,7 +85,7 @@ def create_models_from_metadata():
                             # engine.execute(text(alter_sql))
                             session.execute(text(alter_sql))
 
-                session.commit()  # Ensure the change is saved
+                # session.commit()  # Ensure the change is saved
                 session.close()
 
                 # Dynamically create a model class
