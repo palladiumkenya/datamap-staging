@@ -56,9 +56,10 @@ def create_models_from_metadata():
                 # Define table fields
                 fields = {
                     "__tablename__": table_name,
-                    "__table_args__": {"extend_existing": True},
+                    "__table_args__": {"extend_existing": True, "schema": "base_layer"},
                     "id": Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid1),  # Add default id column
                     table_name+"_id": Column(String,nullable=True),  # Add table_name id column
+                    "loaddate": Column(DateTime, nullable=False, default=datetime.utcnow()),  # Add load date id column
 
                 }
 
