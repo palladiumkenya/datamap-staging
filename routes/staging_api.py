@@ -14,7 +14,7 @@ from typing import List
 from uuid import UUID
 import logging
 
-from models.models import Manifests
+from models.models import Manifests,dynamic_models
 from database.database import get_database, SessionLocal, engine
 
 log = logging.getLogger()
@@ -110,26 +110,70 @@ async def stage_usl_data(baselookup: str, data: Dict[str, Any], db=Depends(get_d
 
         # update manifest
         # Manifests.objects(id=_id).update(end=datetime.utcnow(), receivedCount=10)
-        from celery_jobs.celery_tasks import process_usl_data
+        # from celery_jobs.celery_tasks import process_usl_data
 
-        task = process_usl_data.apply_async(args=[baselookup, data])
+        task = process_usl_data(baselookup, data)
         print("+++ process_usl_data +++", task)
 
         task_id = task.id
         result = AsyncResult(task_id)
 
         log.info("+++ Staging results +++")
-        log.info({"task_id": task.id, "success": result.successful(), "results":  str(result.result) if result.successful() or result.failed() else None})
+        # log.info({"task_id": task.id, "success": result.successful(), "results":  str(result.result) if result.successful() or result.failed() else None})
+        log.info({"task_id": task.id, "success": task.success})
 
         # Check if the task is successful or failed
-        if result.successful():
+        if task.success:
             return {"status": 200, "task_id": task.id, "message": f"Successfully inserted {len(data['data'])} records"}
-        elif result.failed():
+        else:
             return {"status": 500, "task_id": task.id, "message": f"Failed"}
 
         # return {"status":200, "message":f"Successfully inserted {len(inserts_result.inserted_ids)} records"}
     except Exception as e:
         return {"status": 500, "message": e}
+
+
+def process_usl_data(baselookup:str,  usl_data: Dict[str, Any]):
+    """process data"""
+    log.info("+++ process data +++")
+
+    try:
+        # db = get_db()
+        db: Session = SessionLocal()  # Create session from SessionLocal()
+
+        USLDictionaryModel = dynamic_models.get(baselookup)
+
+        if not USLDictionaryModel:
+            raise ValueError(f"Model for table '{baselookup}' not found.")
+        log.info("+++ USLDictionaryModel +++", USLDictionaryModel)
+
+        # Create multiple records then Add and commit the records to the database
+        dataToBeInserted = usl_data["data"]
+        new_records = [USLDictionaryModel(**data) for data in dataToBeInserted]
+
+        db.add_all(new_records)
+        db.commit()
+
+        # Dynamically access the filter column
+        column_attr = getattr(USLDictionaryModel, "facilityid", None)
+        if not column_attr:
+            raise ValueError(f"Column FacilityID not found in model '{baselookup}'.")
+
+        count = db.query(USLDictionaryModel).filter(column_attr == usl_data["facility_id"]).count()
+
+        db.query(Manifests).filter(Manifests.manifest_id == usl_data["manifest_id"]).update({"received_count": count})
+        db.commit()  # Commit the changes
+
+        if int(usl_data['batch_no']) == int(usl_data['total_batches']):
+            db.query(Manifests).filter(Manifests.manifest_id == usl_data["manifest_id"]).update(
+                {"end": datetime.utcnow()})
+            db.commit()
+        log.info(f"++++++++ Processed: {baselookup} USL data batch No. {usl_data['batch_no']} +++++++++")
+        return {"task_id":"5357373", "success":True}
+
+    except Exception as e:
+        log.info(f"++++++++ Worker failed. Error message: {e} +++++++++")
+        return {"task_id":"5357373", "success":False}
 
 
 def convert_to_iso(value):
